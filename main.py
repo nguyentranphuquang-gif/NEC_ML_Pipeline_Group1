@@ -1,5 +1,4 @@
 # Import libraries
-# main.py
 import sys
 from pathlib import Path
 import json

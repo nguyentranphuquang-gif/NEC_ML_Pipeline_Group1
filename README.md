@@ -157,20 +157,28 @@ Final Selection Error Improvement: 4.0%
 ## 📂 Project Structure
 
 ```
-nec-ml-pipeline/
+NEC_ML_Pipeline_Group1-main/
+├── artifacts/
+│   ├── preprocessor.pkl
+│   └── technical_summary_report.txt
+│   └── trained_model.pkl
+├── config/
+│   └── config.yaml
 ├── data/
-│   ├── raw/
-│   └── processed/
+│   ├── demand.csv
+│   └── generation_costs.csv
+│   └── plants.csv
 ├── src/
-├── tests/
-├── results/
-│   ├── evaluation_reports/
-│   ├── selection_tables/
-│   └── plots/
-├── models/
+│   ├── __init__.py
+│   └── evaluation.py
+│   └── ingestion.py
+│   └── models.py
+│   └── preprocessing.py
+│   └── validation.py
+├── .gitignore
 ├── main.py
-├── requirements.txt
-└── README.md
+├── README.md
+└── requirements.txt
 ```
 
 ---

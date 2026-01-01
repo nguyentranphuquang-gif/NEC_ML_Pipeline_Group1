@@ -121,8 +121,12 @@ python main.py
 
 ## 📂 Project Structure
 
-```text
-NEC_ML_PIPELINE_GROUP1/
+```
+NEC_ML_Pipeline_Group1-main/
+├── artifacts/
+│   ├── preprocessor.pkl
+│   └── technical_summary_report.txt
+│   └── trained_model.pkl
 ├── config/
 │   └── config.yaml
 ├── data/

@@ -1,0 +1,70 @@
+project:
+  name: "NEC_Smart_Plant_Prediction"
+  random_seed: 42  
+
+data:
+  demand_path: "data/demand.csv"
+  plant_path: "data/plants.csv"
+  cost_path: "data/generation_costs.csv"
+  
+  target_col: "Cost_USD_per_MWh"  
+  group_col_split: "Demand ID" 
+  group_col_logo: "Demand ID"
+
+  required_demand_cols: ['Demand ID', 'DF_region', 'DF_daytype', 'DF1', 'DF2', 'DF3', 'DF4', 'DF5', 'DF6', 'DF7', 'DF8', 'DF9', 'DF10', 'DF11', 'DF12']
+  required_plant_cols: ['Plant ID', 'Plant Type', 'Region', 'PF1', 'PF2', 'PF3', 'PF4', 'PF5', 'PF6', 'PF7', 'PF8', 'PF9', 'PF10', 'PF11', 'PF12', 'PF13', 'PF14', 'PF15', 'PF16', 'PF17', 'PF18']
+  required_cost_cols: ['Demand ID', 'Plant ID', 'Cost_USD_per_MWh'] 
+
+preprocessing:
+  impute_strategy: median 
+  encode_categoricals: true  # One-hot for type/region/daytype
+  scale_features: true  # StandardScaler for PF/DF
+
+  prune_worst_plants: false  # Remove worst based on baseline RMSE
+  prune_threshold: 10  # Remove plants with baseline RMSE > threshold 
+  num_cols: null  
+  cat_cols: ['Plant Type', 'Region', 'DF_region', 'DF_daytype']
+      
+model:
+  active_model: "random_forest"
+  baseline: true 
+
+  random_forest:
+    params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 5
+      n_jobs: 1   
+    search_ranges:  # For GridSearchCV 
+      n_estimators: [50, 100]
+      max_depth: [10]
+      min_samples_split: [2,5]        
+
+  gradient_boosting:
+    params:
+      n_estimators: 150
+      learning_rate: 0.1
+      max_depth: 5
+    search_ranges:
+      n_estimators: [100, 150, 200]
+      learning_rate: [0.01, 0.1, 0.2]
+      max_depth: [3, 5, 7]
+
+evaluation:
+  metrics: ["rmse", "selection_error"]  
+  cv: "logo"  
+  test_size: 0.2  
+  n_splits: 5
+
+output:
+  artifacts_root: "artifacts"
+  run_name: null          
+  save_run_timestamp: true
+
+  pipeline_filename: "model_pipeline.joblib"
+  config_snapshot_filename: "config_used.yaml"
+
+  cv_results_filename: "cv_results.csv"
+  heldout_results_filename: "heldout_results.json"
+  selection_table_filename: "selection_table.csv"
+  technical_report_filename: "technical_summary_report.txt"

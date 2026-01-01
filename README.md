@@ -1,8 +1,8 @@
 # ⚡ NEC ML Pipeline – Smart Power Plant Selection
 
-End-to-end machine learning pipeline for predicting electricity generation costs and optimally selecting power plants for different demand scenarios using data-driven decision making.
+End-to-end machine learning pipeline to predict electricity generation costs and select the optimal power plant for each demand scenario using decision-focused evaluation.
 
-**Institution:** Keele University Business School  
+**Institution:** Keele Business School  
 **Module:** MAN-40389 – Advanced Data Analytics and Machine Learning  
 **Assessment:** Group Coursework (60%)
 
@@ -10,15 +10,9 @@ End-to-end machine learning pipeline for predicting electricity generation costs
 
 ## 📌 Executive Summary
 
-This project implements an automated machine learning system that supports operational decision-making in energy generation.  
-Instead of focusing only on prediction accuracy, the pipeline evaluates models based on their ability to select the most cost-effective power plant for each demand scenario.
+This project delivers an automated ML pipeline that supports operational decision-making in electricity generation.  
+Rather than optimizing prediction accuracy only, the pipeline is evaluated by its ability to select the lowest-cost plant for each demand scenario.
 
-### Key Highlights
-- **Dataset:** 26,560 observations (415 demand scenarios × 64 power plants)
-- **Learning Task:** Supervised regression (cost prediction)
-- **Decision Task:** Lowest-cost plant selection per demand
-- **Final Model:** Tuned Random Forest
-- **Outcome:** 4.0% reduction in selection error compared to baseline
 
 ---
 
@@ -42,49 +36,55 @@ Electricity providers must decide which power plant to dispatch for a given dema
 ## 🧠 Data Overview
 
 ### Demand Data
-- 415 demand scenarios
-- Numerical demand features (DF1–DF12)
-- Categorical attributes (e.g. region, demand type)
+- 500 demand scenarios  
+- Numerical demand features `DF1–DF12`  
+- Categorical fields: `DF_region`, `DF_daytype`
 
 ### Power Plant Data
-- 64 power plants
-- Numerical plant features (PF1–PF18)
-- Metadata (plant type, region)
+- 64 plants  
+- Numerical plant features `PF1–PF18`  
+- Categorical fields: `Plant Type`, `Region`
 
 ### Generation Cost Data
-- Cost (USD/MWh) for every demand–plant combination
-- Used as the supervised learning target
+- Target: `Cost_USD_per_MWh` for each (Demand ID, Plant ID)
 
 ---
 
-## 🔄 Machine Learning Pipeline
+## 🔄 Pipeline Overview (main.py)
 
-The pipeline is executed end-to-end from a single entry point (`main.py`):
+The entire pipeline runs from a single entry point: `main.py`
 
-1. Data ingestion – load and merge datasets
-2. Validation – schema and integrity checks
-3. Preprocessing  
-   - Numerical: median imputation + scaling  
-   - Categorical: one-hot encoding
-4. Baseline model – Dummy regressor
-5. Model training – Random Forest
-6. Cross-validation – GroupKFold (by Demand ID)
-7. Hyperparameter tuning – GridSearchCV
-8. Evaluation – RMSE + decision-based metrics
-9. Persistence – models, reports, plots
+1. **Ingestion** – load 3 datasets and merge into a master table  
+2. **Validation** – schema checks, duplicates, target missing warnings, coverage warnings  
+3. **Preprocessing**
+   - Numeric: median imputation + standard scaling  
+   - Categorical: imputation + one-hot encoding  
+4. **Held-out split (group-aware)** – split by **Demand ID**  
+5. **Baseline** – DummyRegressor evaluated on held-out  
+6. **Untuned model** – train on train set, evaluate on held-out  
+7. **Hyperparameter tuning** – **GridSearchCV** over a full **Pipeline(preprocess + model)**  
+   - CV splitter: **LeaveOneGroupOut (LOGO)** by Demand ID  
+   - Scoring: **RMSE Selection Error** (custom scorer)  
+8. **Final evaluation** – tuned pipeline evaluated on held-out  
+9. **Artifacts saved** – stored in a unique run folder under `artifacts/`
 
 ---
 
 ## 📊 Evaluation Strategy
 
-### Regression Metrics
-- RMSE
-- R²
+### Regression Metric (secondary)
+- **RMSE (regression)**: RMSE between true and predicted costs (USD/MWh)
 
-### Decision-Focused Metric (Key Contribution)
-**Selection Error** evaluates whether the model selects the same plant as the true minimum-cost plant for each demand scenario.
+### Decision-Focused Metric (primary NEC KPI)
+For each Demand ID:
 
-This directly measures real-world economic impact rather than prediction accuracy alone.
+- Choose plant:  `argmin(predicted_cost)`  
+- True best plant: `argmin(true_cost)`  
+- **Selection Error** = `true_cost(chosen) - true_cost(best)` 
+
+Report:
+- **Mean Selection Error**
+- **RMSE Selection Error** (used for tuning)
 
 ---
 
@@ -93,135 +93,73 @@ This directly measures real-world economic impact rather than prediction accurac
 ### Prerequisites
 ```
 Python 3.8+
-Minimum 8GB RAM (16GB recommended for full tuning)
+Minimum 8GB RAM (16GB recommended for LOGO tuning)
 ```
 
-### Installation
+### Setup
 ```bash
-git clone <repository-url>
-cd nec-ml-pipeline
-
+# 1) Create and activate a virtual environment
 python -m venv venv
 
-# Activate environment
-# Windows:
+# Windows
 venv\Scripts\activate
-# macOS / Linux:
+
+# macOS/Linux
 source venv/bin/activate
 
+# 2) Install dependencies
 pip install -r requirements.txt
-```
 
 ---
 
 ## ▶️ Running the Pipeline
-
 ```bash
-# Full pipeline with hyperparameter tuning (~15–20 mins)
+# Execute the full pipeline
 python main.py
-
-# Quick mode (~5–8 mins)
-python main.py --quick
-
-# Baseline only (~2–3 mins)
-python main.py --no-tune
-
-# Minimal output
-python main.py --quick --quiet
 ```
-
----
-
-## 📈 Expected Console Output
-
-```
-====================================================
-NEC ML PIPELINE – COMPLETE EXECUTION
-====================================================
-
-[1/8] Data Loading
-[2/8] Preprocessing
-[3/8] Baseline Model
-[4/8] Baseline Evaluation
-[5/8] Hyperparameter Tuning
-[6/8] Tuned Model Evaluation
-[7/8] Model Comparison
-[8/8] Results Saved
-
-Final Selection Error Improvement: 4.0%
-====================================================
-```
-
 ---
 
 ## 📂 Project Structure
 
-```
-nec-ml-pipeline/
+```text
+NEC_ML_PIPELINE_GROUP1/
+├── config/
+│   └── config.yaml
 ├── data/
-│   ├── raw/
-│   └── processed/
+│   ├── demand.csv
+│   ├── plants.csv
+│   └── generation_costs.csv
 ├── src/
-├── tests/
-├── results/
-│   ├── evaluation_reports/
-│   ├── selection_tables/
-│   └── plots/
-├── models/
+│   └── nec_ml_pipeline/
+│       ├── __init__.py
+│       ├── ingestion.py
+│       ├── validation.py
+│       ├── preprocessing.py
+│       ├── models.py
+│       ├── evaluation.py
+│       └── utils.py
+├── artifacts/
+│   └── run_YYYYMMDD_HHMMSS/   # generated per run
 ├── main.py
 ├── requirements.txt
 └── README.md
-```
-
----
-
-## 🧪 Testing
-
-```bash
-python -m tests.test_data_ingestion
-python -m tests.test_preprocessing
-python -m tests.test_models
-python -m tests.test_evaluation
-python -m tests.test_tuning
-
-pytest tests/
-```
-
----
-
-## 🧾 Key Results
-
-| Metric | Baseline RF | Tuned RF | Improvement |
-|------|------------|----------|------------|
-| RMSE | 13.01 | 12.90 | 0.9% |
-| R² | 0.332 | 0.344 | 3.5% |
-| Selection Error | 60.24% | 57.83% | 4.0% |
-| Correct Selections | 33 / 83 | 35 / 83 | +2 |
-
-### Tuned Model Parameters
-- n_estimators: 200
-- max_depth: None
-- max_features: sqrt
-- min_samples_split: 5
-- min_samples_leaf: 2
 
 ---
 
 ## 💾 Output Files
 
-```
-results/
-├── evaluation_reports/
-├── selection_tables/
-└── plots/
+To ensure reproducibility, all outputs are automatically saved to the `artifacts/` directory after execution:
 
-models/
-└── tuned_rf_<timestamp>.pkl
-```
-
-This ensures full reproducibility of results.
-
----
+```text
+artifacts/
+  run_YYYYMMDD_HHMMSS/
+    config_used.yaml
+    model_pipeline.joblib
+    cv_results.csv
+    heldout_results.json
+    selection_table.csv
+    selection_table_untuned.csv
+    technical_summary_report.txt            
 
 ## ⚙️ Environment Details
 
@@ -230,72 +168,28 @@ This ensures full reproducibility of results.
 - numpy
 - scikit-learn
 - matplotlib
-- seaborn
-
-### Tested On
-- Windows 10 / 11
-- macOS 12+
-- Ubuntu 20.04+
+- pyyaml
+- joblib
 
 ---
+## ✅ Key Results (Held-out by Demand ID)
 
-## 🛠 Troubleshooting
+Evaluation used a **group-aware held-out split**: 80% train demands (400) / 20% test demands (100).  
+Hyperparameter optimisation used **Leave-One-Group-Out (LOGO)** on the training demands and optimised **RMSE Selection Error**.
 
-**Module errors**
-```bash
-pip install -r requirements.txt
-```
+### Best Hyperparameters (Random Forest)
+- `n_estimators`: 100  
+- `max_depth`: 10  
+- `min_samples_split`: 2  
+Best CV RMSE Selection Error (LOGO, train only): **3.7321**
 
-**Memory issues**
-```bash
-python main.py --quick
-```
+### Held-out Performance (Primary NEC KPI: Selection Error)
+| Model | RMSE Selection Error ↓ | Mean Selection Error ↓ | RMSE (Regression) ↓ |
+|------|--------------------------|-------------------------|----------------------|
+| Baseline (Dummy) | **26.0302** | 25.0011 | 14.7053 |
+| Untuned RF | **4.9440** | 3.1214 | 11.9240 |
+| Tuned RF (LOGO optimised) | **4.7029** | 3.1054 | 12.0143 |
 
-**Slow execution**
-```bash
-python main.py --no-tune
-```
+**Impact:** Tuned RF reduces RMSE Selection Error by ~**82%** vs baseline  
+(26.0302 → 4.7029), demonstrating strong decision-focused improvement.
 
-**Import errors**
-```bash
-cd nec-ml-pipeline
-python main.py
-```
-
----
-
-## 📚 Documentation
-
-- Clear docstrings across all modules
-- Consistent function naming
-- Type hints for key components
-
-Supplementary coursework documents:
-- Assessment brief
-- Technical summary
-- Presentation slides
-
----
-
-## 👥 Team Contributions
-
-- Data ingestion & validation
-- Feature engineering & preprocessing
-- Model training & tuning
-- Custom decision-based evaluation
-- Integration & testing
-
-All components were fully integrated and jointly validated.
-
----
-
-## 📖 Citation
-
-```bibtex
-@software{nec_ml_pipeline_2025,
-  title = {NEC ML Pipeline: Smart Power Plant Selection},
-  year = {2025},
-  institution = {Keele University Business School},
-  course = {MAN-40389}
-}
-```

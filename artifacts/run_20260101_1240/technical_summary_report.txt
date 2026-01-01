@@ -1,0 +1,33 @@
+Loading Configuration...
+[INFO] Run directory: artifacts\run_20260101_1240
+
+[2] Ingestion & Validation
+Master data shape: (32000, 37)
+
+[3] Prepare X/y/groups/meta
+X: (31904, 34) | y: 31904 | groups: 31904 | meta: (31904, 2)
+
+[4] Held-out split by Demand ID
+Train rows: 25522 | Test rows: 6382
+Unique train demands: 400 | Unique test demands: 100
+
+[5] Baseline (DummyRegressor) on held-out
+Baseline metrics: {'rmse_regression': 14.705306545147899, 'mean_selection_error': 25.00112, 'rmse_selection_error': 26.030204579680124}
+
+[6] Untuned model on held-out: random_forest
+Untuned metrics: {'rmse_regression': 11.924023252030965, 'mean_selection_error': 3.12139, 'rmse_selection_error': 4.944027960074661}
+
+[7] Hyperparameter tuning (GridSearchCV) on TRAIN only
+TUNING RESULTS:
+Best params: {'model__max_depth': 10, 'model__min_samples_split': 2, 'model__n_estimators': 100}
+Best CV RMSE selection error (converted): 3.7321
+
+[8] Tuned model evaluation on held-out
+Tuned metrics: {'rmse_regression': 12.014339771201419, 'mean_selection_error': 3.10541, 'rmse_selection_error': 4.7029380784781765}
+
+[9] Saving artefacts
+Saved final pipeline: artifacts\run_20260101_1240\model_pipeline.joblib
+Saved CV results: artifacts\run_20260101_1240\cv_results.csv
+Saved tuned selection table: artifacts\run_20260101_1240\selection_table.csv
+Saved untuned selection table: artifacts\run_20260101_1240\selection_table_untuned.csv
+Saved heldout summary: artifacts\run_20260101_1240\heldout_results.json

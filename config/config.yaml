@@ -22,7 +22,7 @@ preprocessing:
 
   prune_worst_plants: false  # Remove worst based on baseline RMSE
   prune_threshold: 10  # Remove plants with baseline RMSE > threshold 
-  num_cols: []  
+  num_cols: null  
   cat_cols: ['Plant Type', 'Region', 'DF_region', 'DF_daytype']
       
 model:
@@ -34,11 +34,11 @@ model:
       n_estimators: 100
       max_depth: 10
       min_samples_split: 5
-      n_jobs: -1   
+      n_jobs: 1   
     search_ranges:  # For GridSearchCV 
-      n_estimators: [50, 100, 200]
-      max_depth: [5, 10, null]
-      min_samples_split: [2, 5, 10]        
+      n_estimators: [50, 100]
+      max_depth: [10]
+      min_samples_split: [2,5]        
 
   gradient_boosting:
     params:
@@ -57,12 +57,14 @@ evaluation:
   n_splits: 5
 
 output:
-  output_dir: "artifacts/"
-  preprocessor_path: "preprocessor.pkl"  
-  model_path: "trained_model.pkl"
-  baseline_results_path: "baseline_comparison.csv"  
-  eval_results_path: "evaluation_results.csv"  
-  hyperparam_leaderboard_path: "hyperparam_leaderboard.csv"  
-  selection_table_path: "selection_table.csv"  
-  pipeline_diagram_path: "pipeline_diagram.png"  
-  operator_note_path: "operator_note.md"  
+  artifacts_root: "artifacts"
+  run_name: null          
+  save_run_timestamp: true
+
+  pipeline_filename: "model_pipeline.joblib"
+  config_snapshot_filename: "config_used.yaml"
+
+  cv_results_filename: "cv_results.csv"
+  heldout_results_filename: "heldout_results.json"
+  selection_table_filename: "selection_table.csv"
+  technical_report_filename: "technical_summary_report.txt"
